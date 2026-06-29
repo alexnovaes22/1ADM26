@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Avaliação do II Trimestre — Internet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0d1117;
+    color: #1a1a1a;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: #fff; max-width: 700px; width: 100%;
+    border-radius: 10px; box-shadow: 0 8px 40px rgba(0,0,0,0.4); overflow: hidden;
+  }
+  .topo {
+    background: linear-gradient(135deg, #0d1117 0%, #1a2744 100%);
+    color: #fff; padding: 22px 32px 0;
+  }
+  .topo-badge {
+    display: inline-block; background: rgba(99,179,237,0.15); color: #63b3ed;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px;
+    padding: 3px 10px; border-radius: 99px; border: 1px solid rgba(99,179,237,0.3); margin-bottom: 8px;
+  }
+  .topo-titulo { font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 700; }
+  .topo-sub { font-size: 11px; color: #8892a4; text-transform: uppercase; letter-spacing: 1.1px; margin-top: 3px; margin-bottom: 16px; }
+  .progresso-wrap { background: linear-gradient(135deg, #0d1117 0%, #1a2744 100%); padding: 0 32px 18px; }
+  .progresso-info { display: flex; justify-content: space-between; font-size: 10.5px; color: #8892a4; margin-bottom: 6px; }
+  .progresso-barra-bg { background: rgba(255,255,255,0.1); border-radius: 99px; height: 4px; }
+  .progresso-barra { background: #63b3ed; border-radius: 99px; height: 4px; transition: width 0.4s ease; }
+  .corpo { padding: 32px 32px 24px; }
+  .tela { display: none; }
+  .tela.ativa { display: block; }
+  .tela-titulo { font-family: 'Source Serif 4', serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .tela-sub { font-size: 12px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+  .campo-grupo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .campo { display: flex; flex-direction: column; gap: 5px; }
+  .campo label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #888; }
+  .campo input {
+    border: 1.5px solid #ddd; border-radius: 6px; padding: 9px 12px;
+    font-size: 13px; font-family: 'Inter', sans-serif; background: #fafafa;
+    outline: none; color: #1a1a1a; transition: border-color 0.15s;
+  }
+  .campo input:focus { border-color: #1a2744; background: #fff; }
+  .campo input.erro { border-color: #e53e3e; }
+  .msg-erro { font-size: 11px; color: #e53e3e; margin-top: 2px; display: none; }
+  .msg-erro.visivel { display: block; }
+
+  /* INSTRUÇÃO DA QUESTÃO */
+  .questao-instrucao {
+    font-size: 11px; color: #888; font-style: italic;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px dashed #e0e0e0;
+  }
+  /* TRECHO */
+  .questao-trecho {
+    background: #f5f7ff; border-left: 4px solid #63b3ed;
+    border-radius: 0 8px 8px 0; padding: 16px 18px;
+    font-family: 'Source Serif 4', serif; font-size: 14px;
+    line-height: 1.75; color: #1a1a1a; margin-bottom: 20px;
+    font-style: italic;
+  }
+  .questao-pergunta {
+    font-size: 13px; font-weight: 600; color: #444; margin-bottom: 16px;
+  }
+  .alternativas { display: flex; flex-direction: column; gap: 9px; }
+  .alternativa {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 15px; border: 1.5px solid #e8e4df; border-radius: 8px;
+    cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .alternativa:hover { border-color: #1a2744; background: #f5f7ff; }
+  .alternativa.selecionada { border-color: #1a2744; background: #eef1fa; }
+  .alt-circulo {
+    width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #ccc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10.5px; font-weight: 700; color: #999; flex-shrink: 0; transition: all 0.15s;
+  }
+  .alternativa.selecionada .alt-circulo { background: #1a2744; border-color: #1a2744; color: #fff; }
+  .alt-texto { font-size: 13px; color: #2a2a2a; }
+  .aviso-selecao { font-size: 11.5px; color: #e53e3e; margin-top: 10px; display: none; }
+  .aviso-selecao.visivel { display: block; }
+
+  /* CONFIRMAÇÃO */
+  .confirmacao-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
+  .confirmacao-titulo { font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .confirmacao-sub { font-size: 13px; color: #666; text-align: center; line-height: 1.6; margin-bottom: 24px; }
+  .resumo-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin-bottom: 24px; }
+  .resumo-item {
+    border: 1.5px solid #e8e4df; border-radius: 6px; padding: 8px 4px;
+    text-align: center; font-size: 11px; cursor: pointer; transition: all 0.15s;
+  }
+  .resumo-item:hover { background: #f5f7ff; }
+  .resumo-item .num { font-weight: 700; font-size: 14px; display: block; }
+  .resumo-item.respondida { border-color: #1a2744; }
+  .resumo-item.nao-respondida { border-color: #e53e3e; color: #e53e3e; }
+  .aviso-nao-respondidas { font-size: 12px; color: #e53e3e; text-align: center; margin-bottom: 16px; display: none; }
+  .aviso-nao-respondidas.visivel { display: block; }
+
+  /* CORRIGINDO */
+  .corrigindo-wrap { text-align: center; padding: 28px 0; }
+  .corrigindo-icone { font-size: 38px; margin-bottom: 14px; animation: pulsar 1.2s ease-in-out infinite; }
+  @keyframes pulsar { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.95)} }
+  .corrigindo-titulo { font-family: 'Source Serif 4', serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .corrigindo-sub { font-size: 12px; color: #888; }
+
+  /* RESULTADO */
+  .resultado-header {
+    background: linear-gradient(135deg, #0d1117 0%, #1a2744 100%);
+    border-radius: 8px; padding: 22px; text-align: center; margin-bottom: 24px; color: #fff;
+  }
+  .resultado-nome { font-size: 12px; color: #8892a4; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .resultado-nota { font-family: 'Source Serif 4', serif; font-size: 52px; font-weight: 700; line-height: 1; }
+  .resultado-de { font-size: 14px; color: #8892a4; }
+  .resultado-msg { font-size: 13px; margin-top: 10px; color: #cbd5e0; }
+  .resultado-acertos { font-size: 12px; color: #63b3ed; margin-top: 6px; }
+  .gabarito-lista { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .gabarito-item { border-radius: 7px; padding: 13px 15px; border-left: 4px solid #ccc; }
+  .gabarito-item.certa { border-left-color: #38a169; background: #f0fff4; }
+  .gabarito-item.errada { border-left-color: #e53e3e; background: #fff5f5; }
+  .gabarito-trecho { font-size: 12px; font-style: italic; color: #555; margin-bottom: 7px; line-height: 1.5; }
+  .gabarito-resposta { font-size: 12px; }
+  .gabarito-resposta .label { font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .gabarito-resposta.certa .label { color: #38a169; }
+  .gabarito-resposta.errada .label { color: #e53e3e; }
+  .gabarito-correta { font-size: 12px; color: #38a169; margin-top: 4px; }
+  .gabarito-correta .label { font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .gabarito-explicacao { font-size: 11px; color: #666; margin-top: 5px; font-style: italic; line-height: 1.5; }
+
+  .pdf-sub { font-size: 13px; color: #666; text-align: center; line-height: 1.6; margin-bottom: 20px; margin-top: 8px; }
+  .instrucoes-pdf { background: #f5f7ff; border-radius: 6px; padding: 14px 16px; font-size: 12px; color: #555; line-height: 1.7; margin-bottom: 20px; }
+  .instrucoes-pdf b { color: #1a1a1a; }
+
+  .botoes { display: flex; gap: 10px; justify-content: flex-end; margin-top: 28px; }
+  .botoes.centralizado { justify-content: center; flex-direction: column; align-items: center; }
+  .btn { padding: 10px 22px; border-radius: 6px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primario { background: #1a2744; color: #fff; }
+  .btn-primario:hover { background: #243258; }
+  .btn-secundario { background: #f0ede8; color: #444; }
+  .btn-secundario:hover { background: #e5e1db; }
+  .btn-perigo { background: #1a2744; color: #fff; padding: 12px 32px; font-size: 14px; }
+  .btn-perigo:hover { background: #243258; }
+  .btn-voltar-link { font-size: 12px; color: #999; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: 'Inter', sans-serif; margin-top: 8px; }
+  .btn-voltar-link:hover { color: #555; }
+  .btn-pdf { background: #1a6b3c; color: #fff; padding: 12px 32px; font-size: 14px; border-radius: 6px; border: none; font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; }
+  .btn-pdf:hover { background: #145530; }
+  .rodape-card { border-top: 1px solid #ece8e2; padding: 10px 32px; font-size: 10px; color: #bbb; text-align: center; }
+
+  @media print {
+    body { background: #fff; padding: 0; display: block; }
+    .card { box-shadow: none; border-radius: 0; max-width: 100%; }
+    .topo { background: #fff !important; border-bottom: 2px solid #000; padding: 12px 28px 10px; }
+    .topo-badge { display: none; }
+    .topo-titulo { color: #000 !important; font-size: 16px; }
+    .topo-sub { color: #555 !important; }
+    .progresso-wrap { display: none; }
+    .corpo { padding: 16px 28px; }
+    .tela { display: none !important; }
+    .tela-resultado { display: block !important; }
+    .btn-pdf, .botoes, .instrucoes-pdf, .pdf-sub { display: none !important; }
+    .rodape-card { display: none; }
+    .resultado-header { background: #f0f0f0 !important; color: #000 !important; border: 1px solid #ccc; }
+    .resultado-nota, .resultado-msg, .resultado-acertos, .resultado-de, .resultado-nome { color: #000 !important; }
+    #folha-impressao { display: block !important; }
+    .gabarito-lista { display: none !important; }
+  }
+  #folha-impressao { display: none; }
+  .fi-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin-bottom: 10px; }
+  .fi-campo { font-size: 11px; }
+  .fi-linha { border-top: 1px solid #ccc; margin: 10px 0 14px; }
+  .fi-questao { margin-bottom: 14px; page-break-inside: avoid; }
+  .fi-tema { font-size: 8.5px; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+  .fi-trecho { font-size: 11px; font-style: italic; color: #444; margin-bottom: 6px; line-height: 1.5; background: #f5f5f5; padding: 6px 8px; border-left: 3px solid #aaa; }
+  .fi-alt { font-size: 11px; margin-left: 8px; margin-bottom: 3px; line-height: 1.4; }
+  .fi-certa { color: #1a6b3c; font-weight: 700; }
+  .fi-errada { color: #c53030; }
+  .fi-hr { border: none; border-top: 1px solid #e0e0e0; margin: 4px 0 12px; }
+  .fi-rodape { border-top: 1.5px solid #000; padding-top: 8px; margin-top: 16px; display: flex; justify-content: space-between; font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="topo">
+    <div class="topo-badge">🌐 Internet & Tecnologia</div>
+    <div class="topo-titulo">I Avaliação do II Trimestre</div>
+    <div class="topo-sub">Informática — Internet e Pesquisa</div>
+  </div>
+  <div class="progresso-wrap">
+    <div class="progresso-info">
+      <span id="txt-progresso">Identificação</span>
+      <span id="txt-etapa"></span>
+    </div>
+    <div class="progresso-barra-bg">
+      <div class="progresso-barra" id="barra-progresso" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="corpo">
+
+    <!-- TELA 0: IDENTIFICAÇÃO -->
+    <div class="tela ativa" id="tela-id">
+      <div class="tela-titulo">Identificação</div>
+      <div class="tela-sub">Preencha seus dados antes de iniciar a avaliação.</div>
+      <div class="campo-grupo">
+        <div class="campo">
+          <label>Nome *</label>
+          <input type="text" id="inp-nome" placeholder="Seu nome">
+          <span class="msg-erro" id="erro-nome">Informe seu nome.</span>
+        </div>
+        <div class="campo">
+          <label>Sobrenome *</label>
+          <input type="text" id="inp-sobrenome" placeholder="Seu sobrenome">
+          <span class="msg-erro" id="erro-sobrenome">Informe seu sobrenome.</span>
+        </div>
+      </div>
+      <div class="campo-grupo">
+        <div class="campo">
+          <label>Turma *</label>
+          <input type="text" id="inp-turma" placeholder="Ex: 2º A">
+          <span class="msg-erro" id="erro-turma">Informe sua turma.</span>
+        </div>
+        <div class="campo">
+          <label>Data</label>
+          <input type="text" id="inp-data" placeholder="dd/mm/aaaa">
+        </div>
+      </div>
+      <div class="botoes">
+        <button class="btn btn-primario" onclick="iniciarProva()">Iniciar avaliação →</button>
+      </div>
+    </div>
+
+    <!-- TELA QUESTÃO -->
+    <div class="tela" id="tela-questao">
+      <div class="questao-instrucao">Leia o trecho abaixo e identifique a qual tema ele se refere.</div>
+      <div class="questao-trecho" id="q-trecho"></div>
+      <div class="questao-pergunta">Este trecho está relacionado a qual tema?</div>
+      <div class="alternativas" id="q-alternativas"></div>
+      <div class="aviso-selecao" id="aviso-selecao">⚠ Selecione uma alternativa para continuar.</div>
+      <div class="botoes">
+        <button class="btn btn-secundario" id="btn-anterior" onclick="anterior()">← Anterior</button>
+        <button class="btn btn-primario" id="btn-proximo" onclick="proximo()">Próxima →</button>
+      </div>
+    </div>
+
+    <!-- TELA CONFIRMAÇÃO -->
+    <div class="tela" id="tela-confirmacao">
+      <div class="confirmacao-icon">📋</div>
+      <div class="confirmacao-titulo">Deseja finalizar a avaliação?</div>
+      <div class="confirmacao-sub">Confira se todas as questões estão respondidas.<br>Clique em qualquer número para revisar.</div>
+      <div class="resumo-grid" id="resumo-grid"></div>
+      <div class="aviso-nao-respondidas" id="aviso-nao-respondidas">⚠ Há questões sem resposta. Tem certeza que deseja finalizar?</div>
+      <div class="botoes centralizado">
+        <button class="btn btn-perigo" onclick="enviarCorrecao()">✓ Sim, finalizar e corrigir</button>
+        <button class="btn-voltar-link" onclick="voltarParaQuestao()">← Voltar e revisar</button>
+      </div>
+    </div>
+
+    <!-- TELA CORRIGINDO -->
+    <div class="tela" id="tela-corrigindo">
+      <div class="corrigindo-wrap">
+        <div class="corrigindo-icone">🤖</div>
+        <div class="corrigindo-titulo">Corrigindo sua avaliação...</div>
+        <div class="corrigindo-sub">Aguarde enquanto processamos suas respostas.</div>
+      </div>
+    </div>
+
+    <!-- TELA RESULTADO -->
+    <div class="tela tela-resultado" id="tela-resultado">
+      <div class="resultado-header">
+        <div class="resultado-nome" id="res-nome"></div>
+        <div class="resultado-nota" id="res-nota"></div>
+        <div class="resultado-de">de 10,0</div>
+        <div class="resultado-msg" id="res-msg"></div>
+        <div class="resultado-acertos" id="res-acertos"></div>
+      </div>
+      <div class="gabarito-lista" id="gabarito-lista"></div>
+      <div class="pdf-sub">Salve sua avaliação em PDF e envie no Google Classroom.</div>
+      <div class="instrucoes-pdf">
+        <b>Como salvar em PDF:</b><br>
+        1. Clique em <b>"Salvar como PDF"</b><br>
+        2. Em <b>Destino</b>, selecione <b>"Salvar como PDF"</b><br>
+        3. Clique em <b>Salvar</b> e escolha onde guardar<br>
+        4. Acesse o <b>Google Classroom</b> e anexe o arquivo na atividade
+      </div>
+      <div class="botoes centralizado">
+        <button class="btn-pdf" onclick="salvarPDF()">⬇ Salvar como PDF</button>
+      </div>
+      <div id="folha-impressao"></div>
+    </div>
+
+  </div>
+  <div class="rodape-card">Prof. Me. Alex Ferreira Novaes &mdash; Informática</div>
+</div>
+
+<script>
+// ─── TODOS OS TEMAS POSSÍVEIS ─────────────────────────────────────────────────
+const TODOS_TEMAS = [
+  "O que é a Internet",
+  "Dicas de Navegação",
+  "Segurança na Rede",
+  "Navegação Segura",
+  "Pesquisa na Internet",
+  "Fontes de Pesquisa",
+  "Internet das Coisas (IoT)"
+];
+
+// ─── BANCO DE TRECHOS ─────────────────────────────────────────────────────────
+// Cada item: trecho contextualizado + tema correto
+// O gabarito real (tema correto) vai para a API; o aluno só vê o trecho e 4 opções de tema
+const BANCO = [
+  // O QUE É A INTERNET
+  { trecho: "Joana mora em Londrina e sua amiga mora em Tóquio. Todos os dias elas conversam por vídeo, trocam fotos e mandam mensagens em tempo real — como se estivessem na mesma sala, mesmo estando a mais de 18 mil quilômetros de distância.", tema: "O que é a Internet" },
+  { trecho: "Em 1969, computadores de quatro universidades americanas foram conectados em uma rede experimental chamada ARPANET. O objetivo era garantir que informações militares continuassem circulando mesmo que parte da rede fosse destruída.", tema: "O que é a Internet" },
+  { trecho: "Hoje em dia, bilhões de dispositivos ao redor do mundo estão interligados: computadores, celulares, tablets, TVs, câmeras e muito mais — todos trocando dados entre si por meio de uma infraestrutura global de cabos, satélites e roteadores.", tema: "O que é a Internet" },
+  { trecho: "Pedro precisava pagar uma conta, comprar um remédio, assistir a uma aula, ouvir música e conversar com o médico — tudo isso ele fez sem sair de casa, usando apenas seu celular conectado.", tema: "O que é a Internet" },
+  { trecho: "Um cientista britânico chamado Tim Berners-Lee criou, em 1989, um sistema de páginas interligadas por links que poderiam ser acessadas de qualquer lugar do mundo. Esse sistema ficou conhecido pela sigla WWW.", tema: "O que é a Internet" },
+
+  // DICAS DE NAVEGAÇÃO
+  { trecho: "Mariana percebeu que sempre acessava o mesmo portal de notícias, o site do banco e a plataforma da escola. Para não digitar os endereços toda vez, ela clicou com o botão direito e salvou cada um deles em uma pasta chamada 'Favoritos'.", tema: "Dicas de Navegação" },
+  { trecho: "Carlos estava pesquisando para um trabalho e abriu vinte abas ao mesmo tempo. O computador travou. Seu professor sugeriu que ele abrisse uma aba por vez, lesse o conteúdo e fechasse antes de abrir a próxima.", tema: "Dicas de Navegação" },
+  { trecho: "Ao terminar de usar o computador da biblioteca, Ana percebeu que o site do e-mail ainda estava aberto. Para evitar que outra pessoa acessasse sua conta, ela clicou em 'Sair' e fechou o navegador.", tema: "Dicas de Navegação" },
+  { trecho: "Lucas queria voltar a um site que tinha visitado há três dias, mas não lembrava o endereço. Ele abriu o menu do navegador, clicou em 'Histórico' e encontrou rapidamente o link que estava procurando.", tema: "Dicas de Navegação" },
+  { trecho: "A professora orientou os alunos a sempre verificarem a barra de endereços do navegador antes de clicar em 'Próxima página', para confirmar que ainda estavam no site correto e não tinham sido redirecionados.", tema: "Dicas de Navegação" },
+
+  // SEGURANÇA NA REDE
+  { trecho: "Sofia recebeu um e-mail dizendo que ganhou um prêmio e que, para recebê-lo, precisava clicar em um link e informar o número do seu cartão de crédito. Ela mostrou para a mãe, que reconheceu imediatamente como uma tentativa de golpe.", tema: "Segurança na Rede" },
+  { trecho: "Depois que Rafael clicou em um arquivo enviado por um desconhecido, o computador passou a apresentar comportamentos estranhos: abria janelas sozinho, ficava lento e exibia propagandas mesmo sem estar em nenhum site.", tema: "Segurança na Rede" },
+  { trecho: "A escola instalou um programa que verifica automaticamente todos os arquivos baixados da Internet antes de permitir que sejam abertos, removendo qualquer código malicioso encontrado.", tema: "Segurança na Rede" },
+  { trecho: "Beatriz usava '123456' como senha em todos os seus aplicativos. Quando um deles foi invadido, os criminosos usaram a mesma senha para acessar seu e-mail, suas redes sociais e até o aplicativo do banco.", tema: "Segurança na Rede" },
+  { trecho: "Felipe recebeu uma mensagem no WhatsApp de um número desconhecido dizendo ser da operadora de celular dele. A mensagem pedia que ele clicasse em um link para evitar o cancelamento do plano.", tema: "Segurança na Rede" },
+
+  // NAVEGAÇÃO SEGURA
+  { trecho: "Antes de digitar o número do cartão para pagar uma compra online, Larissa sempre verifica se o endereço do site começa com 'https://' e se aparece um pequeno cadeado fechado ao lado do endereço na barra do navegador.", tema: "Navegação Segura" },
+  { trecho: "Gabriel tem 14 anos e um desconhecido começou a mandar mensagens simpáticas nas redes sociais, perguntando onde ele mora, em qual escola estuda e pedindo para se encontrarem pessoalmente.", tema: "Navegação Segura" },
+  { trecho: "Um grupo de alunos criou um perfil falso numa rede social usando a foto de uma colega e começou a publicar mensagens ofensivas e constrangedoras em nome dela, o que causou grande sofrimento à jovem.", tema: "Navegação Segura" },
+  { trecho: "Antes de fazer compras em um site que nunca havia usado, Camila pesquisou o nome da loja no Google, leu avaliações de outros clientes e consultou o site do Reclame Aqui para verificar se havia reclamações.", tema: "Navegação Segura" },
+  { trecho: "Thiago precisava acessar sua conta bancária em um computador público. Ele usou a janela anônima do navegador, fez o que precisava, encerrou a sessão no banco e fechou o navegador logo em seguida.", tema: "Navegação Segura" },
+
+  // PESQUISA NA INTERNET
+  { trecho: "Para o trabalho sobre a Revolução Industrial, Júlia não digitou 'quero saber tudo sobre a Revolução Industrial'. Ela usou termos como 'causas Revolução Industrial Inglaterra século XVIII' e obteve resultados muito mais precisos.", tema: "Pesquisa na Internet" },
+  { trecho: "Diego encontrou uma notícia afirmando que refrigerante cura gripe. Antes de acreditar, ele buscou o mesmo assunto em outros três sites de saúde confiáveis. Como nenhum confirmava essa informação, ele concluiu que era falsa.", tema: "Pesquisa na Internet" },
+  { trecho: "A professora pediu que os alunos não usassem o primeiro resultado do Google automaticamente, mas verificassem a data de publicação, o nome do autor e se o site pertencia a uma instituição reconhecida.", tema: "Pesquisa na Internet" },
+  { trecho: "Isabela queria saber sobre o desmatamento na Amazônia. Ela usou aspas para pesquisar a expressão exata 'desmatamento Amazônia 2024' e encontrou dados bem mais atualizados e relevantes do que antes.", tema: "Pesquisa na Internet" },
+  { trecho: "Um vídeo que circulava nas redes sociais mostrava imagens de uma enchente com o áudio de um repórter descrevendo outra enchente ocorrida cinco anos atrás em outro país. O vídeo estava sendo compartilhado como se fosse atual.", tema: "Pesquisa na Internet" },
+
+  // FONTES DE PESQUISA
+  { trecho: "Para o trabalho sobre a Segunda Guerra Mundial, Rodrigo encontrou o diário original de uma jovem que viveu em um campo de refugiados durante o conflito. Aquele relato pessoal era um material único, escrito por quem viveu o acontecimento.", tema: "Fontes de Pesquisa" },
+  { trecho: "A pesquisadora escreveu um artigo analisando dez estudos diferentes sobre os efeitos do açúcar na saúde. Ela não realizou experimentos próprios — seu trabalho foi interpretar e comparar os dados que outros cientistas já haviam produzido.", tema: "Fontes de Pesquisa" },
+  { trecho: "Para começar o trabalho, o professor indicou que os alunos consultassem primeiro a enciclopédia online para ter uma visão geral do tema — e só depois buscassem artigos, livros e documentos mais específicos.", tema: "Fontes de Pesquisa" },
+  { trecho: "A jornalista gravou uma entrevista diretamente com a prefeita da cidade, que explicou o novo plano de obras. Essa entrevista inédita seria a base do seu artigo, pois continha informações diretas da própria responsável pelas decisões.", tema: "Fontes de Pesquisa" },
+  { trecho: "Para citar no trabalho, Natália escolheu usar o relatório oficial publicado pela OMS, em vez do site de notícias que apenas resumia os dados do relatório — pois queria a informação diretamente de quem a produziu.", tema: "Fontes de Pesquisa" },
+
+  // INTERNET DAS COISAS
+  { trecho: "Ao sair de casa, Renata esqueceu de desligar o ar-condicionado. Mas antes de chegar ao trabalho, ela pegou o celular e desligou o aparelho pelo aplicativo — sem precisar voltar para casa.", tema: "Internet das Coisas (IoT)" },
+  { trecho: "A geladeira inteligente identificou que estava faltando leite, iogurte e ovos. Automaticamente, ela enviou uma lista de compras para o celular do dono e sugeriu o horário de entrega com base na agenda dele.", tema: "Internet das Coisas (IoT)" },
+  { trecho: "Na fábrica, sensores instalados nas máquinas monitoram temperatura, vibração e desgaste em tempo real. Se algum componente está prestes a falhar, o sistema avisa o técnico antes de o problema acontecer.", tema: "Internet das Coisas (IoT)" },
+  { trecho: "Um morador de um condomínio inteligente controla pelo celular as luzes, as câmeras, a fechadura da porta e até a irrigação do jardim — tudo conectado e programado para funcionar automaticamente conforme a sua rotina.", tema: "Internet das Coisas (IoT)" },
+  { trecho: "Uma pesquisa apontou que, com o crescimento de dispositivos domésticos conectados, tornou-se necessário reforçar a proteção dessas redes, pois aparelhos como babás eletrônicas e câmeras internas já foram invadidos por hackers.", tema: "Internet das Coisas (IoT)" },
+];
+
+const LETRAS = ["A","B","C","D"];
+let questoes = [], atual = 0, respostas = {}, dadosAluno = {};
+
+function embaralhar(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+}
+function atualizarProgresso(pct, label) {
+  document.getElementById('barra-progresso').style.width=pct+'%';
+  document.getElementById('txt-progresso').textContent=label;
+  document.getElementById('txt-etapa').textContent=pct+'%';
+}
+
+function iniciarProva() {
+  let ok=true;
+  ['nome','sobrenome','turma'].forEach(f=>{
+    const val=document.getElementById('inp-'+f).value.trim();
+    const err=document.getElementById('erro-'+f);
+    const inp=document.getElementById('inp-'+f);
+    if(!val){err.classList.add('visivel');inp.classList.add('erro');ok=false;}
+    else{err.classList.remove('visivel');inp.classList.remove('erro');}
+  });
+  if(!ok) return;
+  dadosAluno={
+    nome: document.getElementById('inp-nome').value.trim(),
+    sobrenome: document.getElementById('inp-sobrenome').value.trim(),
+    turma: document.getElementById('inp-turma').value.trim(),
+    data: document.getElementById('inp-data').value.trim() || new Date().toLocaleDateString('pt-BR')
+  };
+
+  // Sorteia 10 trechos do banco
+  const sel = embaralhar(BANCO).slice(0,10);
+
+  // Para cada trecho, monta 4 opções de tema:
+  // 1 correta + 3 distratores aleatórios dos outros temas
+  questoes = sel.map(q => {
+    const outrosTemas = TODOS_TEMAS.filter(t => t !== q.tema);
+    const distratores = embaralhar(outrosTemas).slice(0,3);
+    const opcoes = embaralhar([q.tema, ...distratores]);
+    return {
+      trecho: q.trecho,
+      tema_correto: q.tema,
+      opcoes: opcoes
+      // índice correto NÃO é armazenado aqui — a API decide
+    };
+  });
+
+  atual=0; respostas={};
+  mostrarTela('tela-questao');
+  renderQuestao();
+}
+
+function renderQuestao() {
+  const q=questoes[atual];
+  document.getElementById('q-trecho').textContent = q.trecho;
+  document.getElementById('aviso-selecao').classList.remove('visivel');
+  const cont=document.getElementById('q-alternativas');
+  cont.innerHTML='';
+  q.opcoes.forEach((op,j)=>{
+    const div=document.createElement('div');
+    div.className='alternativa'+(respostas[atual]===j?' selecionada':'');
+    div.onclick=()=>selecionar(j);
+    div.innerHTML=`<div class="alt-circulo">${LETRAS[j]}</div><span class="alt-texto">${op}</span>`;
+    cont.appendChild(div);
+  });
+  document.getElementById('btn-anterior').style.display=atual===0?'none':'inline-block';
+  document.getElementById('btn-proximo').textContent=atual===questoes.length-1?'Finalizar →':'Próxima →';
+  const pct=Math.round(((atual+1)/(questoes.length+1))*90);
+  atualizarProgresso(pct,`Questão ${atual+1} de ${questoes.length}`);
+}
+
+function selecionar(j) {
+  respostas[atual]=j;
+  document.querySelectorAll('.alternativa').forEach((el,i)=>el.classList.toggle('selecionada',i===j));
+  document.getElementById('aviso-selecao').classList.remove('visivel');
+}
+function proximo() {
+  if(respostas[atual]===undefined){document.getElementById('aviso-selecao').classList.add('visivel');return;}
+  if(atual<questoes.length-1){atual++;renderQuestao();}
+  else mostrarConfirmacao();
+}
+function anterior(){if(atual>0){atual--;renderQuestao();}}
+
+function mostrarConfirmacao() {
+  const grid=document.getElementById('resumo-grid');
+  grid.innerHTML='';
+  let nao=0;
+  questoes.forEach((_,i)=>{
+    const resp=respostas[i]!==undefined;
+    const div=document.createElement('div');
+    div.className='resumo-item '+(resp?'respondida':'nao-respondida');
+    div.innerHTML=`<span class="num">${i+1}</span>${resp?'✓':'✗'}`;
+    div.onclick=()=>{atual=i;mostrarTela('tela-questao');renderQuestao();};
+    grid.appendChild(div);
+    if(!resp) nao++;
+  });
+  document.getElementById('aviso-nao-respondidas').classList.toggle('visivel',nao>0);
+  atualizarProgresso(95,'Confirmar envio');
+  mostrarTela('tela-confirmacao');
+}
+function voltarParaQuestao(){
+  const i=questoes.findIndex((_,i)=>respostas[i]===undefined);
+  atual=i>=0?i:questoes.length-1;
+  mostrarTela('tela-questao');renderQuestao();
+}
+
+// ─── CORREÇÃO VIA API DO CLAUDE ───────────────────────────────────────────────
+async function enviarCorrecao() {
+  mostrarTela('tela-corrigindo');
+  atualizarProgresso(97,'Corrigindo...');
+
+  const perguntas = questoes.map((q,i)=>{
+    const letraEscolhida = respostas[i]!==undefined ? LETRAS[respostas[i]] : 'Não respondida';
+    const temaEscolhido  = respostas[i]!==undefined ? q.opcoes[respostas[i]] : '—';
+    return `Q${i+1}
+Trecho: "${q.trecho}"
+Opções apresentadas ao aluno:
+${q.opcoes.map((op,j)=>`  ${LETRAS[j]}) ${op}`).join('\n')}
+Resposta do aluno: ${letraEscolhida}) ${temaEscolhido}`;
+  }).join('\n\n');
+
+  const prompt = `Você é um professor corrigindo uma prova de informática para alunos do ensino médio técnico brasileiro.
+
+A prova é de IDENTIFICAÇÃO DE TEMAS: o aluno lê um trecho de situação do cotidiano e deve identificar a qual tema de informática ele se refere.
+
+Os temas possíveis são: O que é a Internet, Dicas de Navegação, Segurança na Rede, Navegação Segura, Pesquisa na Internet, Fontes de Pesquisa, Internet das Coisas (IoT).
+
+Corrija cada questão e responda APENAS com um JSON válido, sem texto antes ou depois, sem markdown.
+
+Formato exato:
+{
+  "acertos": <número inteiro de 0 a 10>,
+  "nota": <número decimal de 0.0 a 10.0>,
+  "questoes": [
+    {
+      "numero": 1,
+      "correta": true ou false,
+      "tema_correto": "<nome do tema correto para esse trecho>",
+      "tema_aluno": "<tema que o aluno escolheu>",
+      "explicacao": "<explicação curta, simples, máximo 2 linhas, linguagem para aluno de ensino médio, explica por que o trecho pertence ao tema correto>"
+    }
+  ]
+}
+
+Questões:
+
+${perguntas}`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content.map(b=>b.text||'').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const resultado = JSON.parse(clean);
+    exibirResultado(resultado);
+  } catch(e) {
+    document.getElementById('aviso-nao-respondidas').textContent='⚠ Erro ao conectar com o servidor de correção. Verifique sua conexão e tente novamente.';
+    document.getElementById('aviso-nao-respondidas').classList.add('visivel');
+    mostrarTela('tela-confirmacao');
+  }
+}
+
+function exibirResultado(resultado) {
+  atualizarProgresso(100,'Avaliação concluída');
+  document.getElementById('res-nome').textContent=`${dadosAluno.nome} ${dadosAluno.sobrenome} — ${dadosAluno.turma}`;
+  document.getElementById('res-nota').textContent=resultado.nota.toFixed(1).replace('.',',');
+  const msgs=[
+    [9,'🌟 Excelente! Você domina o conteúdo!'],
+    [7,'👏 Muito bem! Continue assim!'],
+    [5,'📚 Bom esforço! Revise os pontos em vermelho.'],
+    [0,'💪 Não desanime! Revise os temas e tente novamente.']
+  ];
+  document.getElementById('res-msg').textContent=msgs.find(([min])=>resultado.acertos>=min)[1];
+  document.getElementById('res-acertos').textContent=`${resultado.acertos} de 10 questões corretas`;
+
+  const lista=document.getElementById('gabarito-lista');
+  lista.innerHTML='';
+  resultado.questoes.forEach((q,i)=>{
+    const div=document.createElement('div');
+    div.className='gabarito-item '+(q.correta?'certa':'errada');
+    div.innerHTML=`
+      <div class="gabarito-trecho">"${questoes[i].trecho}"</div>
+      <div class="gabarito-resposta ${q.correta?'certa':'errada'}">
+        <span class="label">${q.correta?'✓ Correto':'✗ Sua resposta'}</span><br>${q.tema_aluno}
+      </div>
+      ${!q.correta?`<div class="gabarito-correta"><span class="label">✓ Tema correto</span><br>${q.tema_correto}</div>`:''}
+      <div class="gabarito-explicacao">${q.explicacao}</div>`;
+    lista.appendChild(div);
+  });
+
+  gerarFolha(resultado);
+  mostrarTela('tela-resultado');
+}
+
+function gerarFolha(resultado) {
+  const fi=document.getElementById('folha-impressao');
+  let h=`<div class="fi-campos">
+    <div class="fi-campo"><b>Nome:</b> ${dadosAluno.nome} ${dadosAluno.sobrenome}</div>
+    <div class="fi-campo"><b>Turma:</b> ${dadosAluno.turma}</div>
+    <div class="fi-campo"><b>Data:</b> ${dadosAluno.data}</div>
+    <div class="fi-campo"><b>Nota:</b> ${resultado.nota.toFixed(1).replace('.',',')} / 10,0 (${resultado.acertos} acertos)</div>
+  </div><div class="fi-linha"></div>`;
+  questoes.forEach((q,i)=>{
+    const r=resultado.questoes[i];
+    h+=`<div class="fi-questao">
+      <div class="fi-trecho">"${q.trecho}"</div>`;
+    q.opcoes.forEach((op,j)=>{
+      const isAluno=respostas[i]===j;
+      const isCorreta=op===r.tema_correto;
+      let cls='';
+      if(isCorreta) cls='fi-certa';
+      else if(isAluno&&!r.correta) cls='fi-errada';
+      h+=`<div class="fi-alt ${cls}">${isCorreta?'✓':isAluno?'✗':'○'} ${LETRAS[j]}) ${op}</div>`;
+    });
+    h+=`</div>`;
+    if(i<questoes.length-1) h+=`<hr class="fi-hr">`;
+  });
+  h+=`<div class="fi-rodape"><span>Prof. Me. Alex Ferreira Novaes — Informática</span><span>Nota: ${resultado.nota.toFixed(1).replace('.',',')} / 10,0</span></div>`;
+  fi.innerHTML=h;
+}
+
+function salvarPDF(){window.print();}
+</script>
+</body>
+</html>
